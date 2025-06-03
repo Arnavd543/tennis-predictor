@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tennis Match Predictor</title>
+    <link rel="stylesheet" href="{% static 'predictor/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Tennis Match Predictor</h1>
+        <form action="{% url 'predict' %}" method="post">
+            {% csrf_token %}
+
+            <!-- 1) Tour Category -->
+            <div class="field">
+                <label for="tour_category">Tour Category:</label>
+                <select name="tour_category" id="tour_category" required>
+                    <option value="ATP">ATP</option>
+                    <option value="WTA">WTA</option>
+                </select>
+            </div>
+
+            <!-- 2) Player 1 & Rank -->
+            <div class="field">
+                <label for="player_1">Player 1 Name:</label>
+                <input type="text" name="player_1" id="player_1" required>
+            </div>
+            <div class="field">
+                <label for="player_1_rank">Player 1 Rank:</label>
+                <input type="number" name="player_1_rank" id="player_1_rank" required>
+            </div>
+
+            <!-- 3) Player 2 & Rank -->
+            <div class="field">
+                <label for="player_2">Player 2 Name:</label>
+                <input type="text" name="player_2" id="player_2" required>
+            </div>
+            <div class="field">
+                <label for="player_2_rank">Player 2 Rank:</label>
+                <input type="number" name="player_2_rank" id="player_2_rank" required>
+            </div>
+
+            <!-- 4) Surface -->
+            <div class="field">
+                <label for="surface">Surface:</label>
+                <select name="surface" id="surface" required>
+                    <option value="Clay">Clay</option>
+                    <option value="Grass">Grass</option>
+                    <option value="Hard">Hard</option>
+                    <option value="Carpet">Carpet</option>
+                </select>
+            </div>
+
+            <!-- 5) Tournament Date -->
+            <div class="field">
+                <label for="tourney_date">Tournament Date:</label>
+                <input type="date" name="tourney_date" id="tourney_date" required>
+            </div>
+
+            <!-- 6) Odds -->
+            <div class="field">
+                <label for="odd_1">Player 1 Odds:</label>
+                <input type="number" step="0.01" name="odd_1" id="odd_1" required>
+            </div>
+            <div class="field">
+                <label for="odd_2">Player 2 Odds:</label>
+                <input type="number" step="0.01" name="odd_2" id="odd_2" required>
+            </div>
+
+            <!-- 7) Points -->
+            <div class="field">
+                <label for="pts_1">Player 1 Points:</label>
+                <input type="number" name="pts_1" id="pts_1" required>
+            </div>
+            <div class="field">
+                <label for="pts_2">Player 2 Points:</label>
+                <input type="number" name="pts_2" id="pts_2" required>
+            </div>
+
+            <!-- 8) Best of (3 or 5) -->
+            <div class="field">
+                <label for="best_of">Best of:</label>
+                <select name="best_of" id="best_of" required>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+            <!-- 9) Series (ATP only; for WTA this will be ignored) -->
+            <div class="field" id="series_field">
+                <label for="series">Series (ATP):</label>
+                <select name="series" id="series">
+                    <option value="Grand Slam">Grand Slam</option>
+                    <option value="Masters 1000">Masters 1000</option>
+                    <option value="ATP 500">ATP 500</option>
+                    <option value="ATP 250">ATP 250</option>
+                    <option value="ATP Finals">ATP Finals</option>
+                </select>
+            </div>
+
+            <!-- 10) Court -->
+            <div class="field">
+                <label for="court">Court:</label>
+                <select name="court" id="court" required>
+                    <option value="Centre Court">Centre Court</option>
+                    <option value="Outside Court 1">Outside Court 1</option>
+                    <option value="Outside Court 2">Outside Court 2</option>
+                    <option value="Court Philippe‐Chatrier">Court Philippe‐Chatrier</option>
+                    <option value="Court Suzanne‐Lenglen">Court Suzanne‐Lenglen</option>
+                    <option value="Main Arena">Main Arena</option>
+                    <!-- Add any additional court names exactly as in your CSV -->
+                </select>
+            </div>
+
+            <!-- 11) Round -->
+            <div class="field">
+                <label for="round">Round:</label>
+                <select name="round" id="round" required>
+                    <option value="R128">R128</option>
+                    <option value="R64">R64</option>
+                    <option value="R32">R32</option>
+                    <option value="R16">R16</option>
+                    <option value="Quarter">Quarter</option>
+                    <option value="Semi">Semi</option>
+                    <option value="Final">Final</option>
+                    <!-- Add any additional rounds exactly as in your CSV -->
+                </select>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit">Predict Winner</button>
+        </form>
+    </div>
+
+    <script>
+        // If you want to hide "Series" field when WTA is selected:
+        document.getElementById('tour_category').addEventListener('change', function () {
+            const isATP = this.value === 'ATP';
+            document.getElementById('series_field').style.display = isATP ? 'block' : 'none';
+        });
+        // Initially hide if WTA is default:
+        if (document.getElementById('tour_category').value === 'WTA') {
+            document.getElementById('series_field').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

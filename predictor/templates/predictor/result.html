@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{% static 'predictor/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Prediction Result</h1>
+
+        {% if error %}
+            <p class="error">Error: {{ error }}</p>
+            <a href="{% url 'home' %}">Go back</a>
+        {% else %}
+            <p><strong>Tour Category:</strong> {{ tour_category }}</p>
+            <p><strong>Match:</strong> {{ player_1 }} (Rank {{ player_1_rank }}) vs. {{ player_2 }} (Rank {{ player_2_rank }})</p>
+            <p><strong>Surface:</strong> {{ surface }}</p>
+            <p><strong>Date:</strong> {{ tourney_date }}</p>
+
+            <p><strong>Odds:</strong> {{ player_1 }} = {{ odd_1 }}, {{ player_2 }} = {{ odd_2 }}</p>
+            <p><strong>Points:</strong> {{ player_1 }} = {{ pts_1 }}, {{ player_2 }} = {{ pts_2 }}</p>
+            <p><strong>Best of:</strong> {{ best_of }}</p>
+            {% if tour_category == "ATP" %}
+                <p><strong>Series:</strong> {{ series }}</p>
+            {% endif %}
+            <p><strong>Court:</strong> {{ court }}</p>
+            <p><strong>Round:</strong> {{ round }}</p>
+
+            <h2>Predicted Winner: <span class="winner">{{ predicted_winner }}</span></h2>
+            <a href="{% url 'home' %}">Predict another match</a>
+        {% endif %}
+    </div>
+</body>
+</html>
