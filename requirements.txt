@@ -1,0 +1,20 @@
+# Enhanced Tennis Predictor Requirements
+# Install with: pip install -r requirements_enhanced.txt
+
+# Core requirements (already needed)
+Django==5.2.1
+pandas==2.0.3
+numpy==1.24.3
+scikit-learn==1.3.0
+xgboost==1.7.6
+joblib==1.3.2
+scipy==1.11.1
+kaggle==1.5.16
+python-dateutil==2.8.2
+
+# Enhanced ML models (optional but recommended for 90% accuracy)
+lightgbm==4.0.0  # Alternative gradient boosting
+catboost==1.2     # Categorical boosting
+
+# Additional utilities
+optuna==3.3.0     # Hyperparameter optimization (future enhancement)

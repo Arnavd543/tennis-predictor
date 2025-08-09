@@ -6,7 +6,11 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
-from .predictor_utils import predict_atp_winner, predict_wta_winner
+from .predictor_utils import (
+    predict_atp_winner, predict_wta_winner,
+    predict_atp_winner_with_confidence, predict_wta_winner_with_confidence,
+    get_model_status, get_system_info
+)
 from .models import PredictionRequest
 from .ml_utils import load_processed_csv
 
@@ -25,18 +29,34 @@ SERIES_CATEGORIES_ATP = [
 # Map series string → integer label
 SERIES_MAPPING = {name: idx for idx, name in enumerate(SERIES_CATEGORIES_ATP)}
 
-COURT_CATEGORIES = [
-    'Centre Court',
-    'Outside Court 1',
-    'Outside Court 2',
-    'Court Philippe‐Chatrier',
-    'Court Suzanne‐Lenglen',
-    'Main Arena',
-    # (add any other court names exactly as in your CSV)
+# Major tournaments that appear in both ATP and WTA data
+TOURNAMENT_CATEGORIES = [
+    'Australian Open',
+    'French Open', 
+    'Wimbledon',
+    'US Open',
+    'BNP Paribas Open',
+    'Sony Ericsson Open',
+    'Internazionali BNL d\'Italia',
+    'Western & Southern Financial Group Masters',
+    'Mutua Madrid Open',
+    'Monte Carlo Masters',
+    'Shanghai Masters',
+    'BNP Paribas Masters',
+    'Rogers Masters',
+    'Rogers Cup',
+    'China Open',
+    'Dubai Duty Free Tennis Championships',
+    'Qatar Total Open',
+    'Family Circle Cup',
+    'Abierto Mexicano',
+    'BMW Open',
+    'Mercedes Cup',
+    'Hall of Fame Championships'
 ]
 
-# Map court string → integer label
-COURT_MAPPING = {name: idx for idx, name in enumerate(COURT_CATEGORIES)}
+# Map tournament string → integer label
+TOURNAMENT_MAPPING = {name: idx for idx, name in enumerate(TOURNAMENT_CATEGORIES)}
 
 ROUND_CATEGORIES = [
     'R128',
@@ -207,9 +227,9 @@ def predict_view(request):
     else:
         series_enc = 0
 
-    # ─── 7) Court encoding ────────────────────────────────────────────────────
-    court_str = request.POST.get('court')
-    court_enc = COURT_MAPPING.get(court_str, len(COURT_CATEGORIES))
+    # ─── 7) Tournament encoding ───────────────────────────────────────────────
+    tournament_str = request.POST.get('tournament')
+    tournament_enc = TOURNAMENT_MAPPING.get(tournament_str, len(TOURNAMENT_CATEGORIES))
 
     # ─── 8) Round encoding ────────────────────────────────────────────────────
     round_str = request.POST.get('round')
@@ -236,49 +256,46 @@ def predict_view(request):
         pts_diff,
         best_of,
         series_enc,
-        court_enc,
+        tournament_enc,
         round_enc,
         elo_diff,
         surf_elo_diff,
         h2h_diff
     ]])
 
-    # ─── 13) Call the correct model ────────────────────────────────────────────
+    # ─── 13) Call the enhanced prediction system (automatically uses best available model) ───────
     if tour_category == 'ATP':
-        flag = predict_atp_winner(
-            player_1_rank=player_1_rank,
-            player_2_rank=player_2_rank,
+        flag, confidence, model_type = predict_atp_winner_with_confidence(
+            player_1=player_1,
+            player_2=player_2,
             surface=surface,
             tourney_date=tourney_date,
+            tournament=tournament_str,
+            round_name=round_str,
+            player_1_rank=player_1_rank,
+            player_2_rank=player_2_rank,
             odd1=odd1,
             odd2=odd2,
             pts1=pts1,
             pts2=pts2,
             best_of=best_of,
-            series_enc=series_enc,
-            court_enc=court_enc,
-            round_enc=round_enc,
-            elo_diff=elo_diff,
-            surf_elo_diff=surf_elo_diff,
-            h2h_diff=h2h_diff
+            series_enc=series_enc
         )
     else:  # WTA
-        flag = predict_wta_winner(
-            player_1_rank=player_1_rank,
-            player_2_rank=player_2_rank,
+        flag, confidence, model_type = predict_wta_winner_with_confidence(
+            player_1=player_1,
+            player_2=player_2,
             surface=surface,
             tourney_date=tourney_date,
+            tournament=tournament_str,
+            round_name=round_str,
+            player_1_rank=player_1_rank,
+            player_2_rank=player_2_rank,
             odd1=odd1,
             odd2=odd2,
             pts1=pts1,
             pts2=pts2,
-            best_of=best_of,
-            series_enc=0,
-            court_enc=court_enc,
-            round_enc=round_enc,
-            elo_diff=elo_diff,
-            surf_elo_diff=surf_elo_diff,
-            h2h_diff=h2h_diff
+            best_of=best_of
         )
 
     predicted_winner = player_1 if flag == 1 else player_2
@@ -311,8 +328,11 @@ def predict_view(request):
         'pts_2':           pts2,
         'best_of':         best_of,
         'series':          series_str if tour_category=='ATP' else '',
-        'court':           court_str,
+        'tournament':      tournament_str,
         'round':           round_str,
-        'predicted_winner':predicted_winner
+        'predicted_winner':predicted_winner,
+        'confidence': confidence / 100.0 if confidence > 1 else confidence,  # Normalize to 0-1 range
+        'model_type': model_type,
+        'confidence_percent': int(confidence)
     }
     return render(request, 'predictor/result.html', context)

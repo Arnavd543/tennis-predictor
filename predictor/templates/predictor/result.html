@@ -25,11 +25,26 @@
             {% if tour_category == "ATP" %}
                 <p><strong>Series:</strong> {{ series }}</p>
             {% endif %}
-            <p><strong>Court:</strong> {{ court }}</p>
+            <p><strong>Tournament:</strong> {{ tournament }}</p>
             <p><strong>Round:</strong> {{ round }}</p>
 
-            <h2>Predicted Winner: <span class="winner">{{ predicted_winner }}</span></h2>
-            <a href="{% url 'home' %}">Predict another match</a>
+            <div class="prediction-result">
+                <h2>Predicted Winner: <span class="winner">{{ predicted_winner }}</span></h2>
+                <div class="confidence-info">
+                    <p><strong>Model Confidence:</strong> {{ confidence_percent }}%</p>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: {{ confidence_percent }}%;"></div>
+                    </div>
+                    <p class="model-type"><strong>Model Used:</strong> {{ model_type }}</p>
+                    {% if model_type == 'Enhanced' %}
+                        <p class="enhanced-note">🎯 Using advanced AI model with 40+ features for maximum accuracy</p>
+                    {% else %}
+                        <p class="basic-note">ℹ️ Using basic model - train enhanced models for higher accuracy</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <a href="{% url 'home' %}" class="predict-again-btn">Predict another match</a>
         {% endif %}
     </div>
 </body>
