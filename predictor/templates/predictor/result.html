@@ -1,51 +1,56 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ dark: darkMode }">
 <head>
-    <meta charset="UTF-8">
-    <title>Prediction Result</title>
-    <link rel="stylesheet" href="{% static 'predictor/style.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prediction Result — Tennis Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'predictor/dist/styles.css' %}">
+  <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Prediction Result</h1>
 
-        {% if error %}
-            <p class="error">Error: {{ error }}</p>
-            <a href="{% url 'home' %}">Go back</a>
-        {% else %}
-            <p><strong>Tour Category:</strong> {{ tour_category }}</p>
-            <p><strong>Match:</strong> {{ player_1 }} (Rank {{ player_1_rank }}) vs. {{ player_2 }} (Rank {{ player_2_rank }})</p>
-            <p><strong>Surface:</strong> {{ surface }}</p>
-            <p><strong>Date:</strong> {{ tourney_date }}</p>
+<body class="min-h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
 
-            <p><strong>Odds:</strong> {{ player_1 }} = {{ odd_1 }}, {{ player_2 }} = {{ odd_2 }}</p>
-            <p><strong>Points:</strong> {{ player_1 }} = {{ pts_1 }}, {{ player_2 }} = {{ pts_2 }}</p>
-            <p><strong>Best of:</strong> {{ best_of }}</p>
-            {% if tour_category == "ATP" %}
-                <p><strong>Series:</strong> {{ series }}</p>
-            {% endif %}
-            <p><strong>Tournament:</strong> {{ tournament }}</p>
-            <p><strong>Round:</strong> {{ round }}</p>
-
-            <div class="prediction-result">
-                <h2>Predicted Winner: <span class="winner">{{ predicted_winner }}</span></h2>
-                <div class="confidence-info">
-                    <p><strong>Model Confidence:</strong> {{ confidence_percent }}%</p>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" style="width: {{ confidence_percent }}%;"></div>
-                    </div>
-                    <p class="model-type"><strong>Model Used:</strong> {{ model_type }}</p>
-                    {% if model_type == 'Enhanced' %}
-                        <p class="enhanced-note">🎯 Using advanced AI model with 40+ features for maximum accuracy</p>
-                    {% else %}
-                        <p class="basic-note">ℹ️ Using basic model - train enhanced models for higher accuracy</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <a href="{% url 'home' %}" class="predict-again-btn">Predict another match</a>
-        {% endif %}
+  <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-sm font-bold">T</div>
+        <span class="font-semibold text-base">Tennis Predictor</span>
+      </a>
+      <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
+              class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </button>
     </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div class="space-y-5 animate-fade-in-up">
+
+      <!-- Embed the result card partial -->
+      {% include 'predictor/partials/result_card.html' %}
+
+      <!-- Back to home -->
+      <div class="text-center pt-2">
+        <a href="/" class="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Back to Predictor
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <style>
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+  </style>
+
 </body>
 </html>

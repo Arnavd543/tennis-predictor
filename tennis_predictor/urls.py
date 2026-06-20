@@ -17,8 +17,16 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from predictor import health
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
+    # Health check endpoints
+    path('health/', health.health_check, name='health_check'),
+    path('health/ready/', health.readiness_check, name='readiness'),
+    path('health/live/', health.liveness_check, name='liveness'),
+
+    # Main app
     path('', include('predictor.urls')),
 ]

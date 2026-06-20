@@ -1,0 +1,103 @@
+{% load static %}
+{# Partial result card — returned by HTMX predict request and included in result.html #}
+
+{% if error %}
+<div class="card p-6 animate-fade-in-up">
+  <div class="flex items-center gap-3 text-red-600 dark:text-red-400 mb-2">
+    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <span class="font-semibold">Prediction failed</span>
+  </div>
+  <p class="text-sm text-gray-600 dark:text-gray-400">{{ error }}</p>
+</div>
+
+{% else %}
+
+<div class="space-y-4 animate-fade-in-up">
+
+  <!-- Winner announcement -->
+  <div class="card overflow-hidden">
+    <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white text-center">
+      <div class="text-sm font-medium text-green-100 uppercase tracking-wider mb-1">Predicted Winner</div>
+      <div class="text-3xl font-bold mb-1">{{ predicted_winner }}</div>
+      <div class="text-green-100 text-sm">{{ tour_category }} &bull; {{ surface }} &bull; Best of {{ best_of }}</div>
+    </div>
+
+    <!-- Dual probability bar -->
+    <div class="px-6 py-5">
+      <div class="flex items-center justify-between text-sm font-medium mb-2">
+        <span class="text-blue-600 dark:text-blue-400 truncate max-w-[40%]">{{ player_1 }}</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500 px-2">vs</span>
+        <span class="text-purple-600 dark:text-purple-400 truncate max-w-[40%] text-right">{{ player_2 }}</span>
+      </div>
+      <div class="relative h-4 rounded-full bg-purple-200 dark:bg-purple-900/50 overflow-hidden">
+        <div class="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-1000 ease-out"
+             style="width: {{ confidence_percent }}%"></div>
+      </div>
+      <div class="flex justify-between text-xs font-semibold mt-1.5">
+        <span class="text-blue-600 dark:text-blue-400">{{ confidence_percent }}%</span>
+        <span class="text-purple-600 dark:text-purple-400">{{ p2_confidence_percent }}%</span>
+      </div>
+
+      <!-- Confidence label -->
+      <div class="mt-3 flex items-center gap-2">
+        {% if confidence_percent >= 75 %}
+        <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 font-medium">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          High confidence
+        </span>
+        {% elif confidence_percent >= 60 %}
+        <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 font-medium">
+          Moderate confidence
+        </span>
+        {% else %}
+        <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 font-medium">
+          Low confidence — close match
+        </span>
+        {% endif %}
+        <span class="text-xs text-gray-500 dark:text-gray-400 ml-auto">{{ model_type }} model</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match details -->
+  <div class="card p-5">
+    <h3 class="font-semibold text-sm mb-4 text-gray-700 dark:text-gray-300">Match Details</h3>
+    <div class="grid grid-cols-3 gap-3 mb-4 text-center text-sm">
+      <div class="stat-box">
+        <div class="font-bold text-gray-900 dark:text-gray-100 truncate text-xs">{{ player_1 }}</div>
+        <div class="text-gray-500 dark:text-gray-400 text-xs">Rank #{{ player_1_rank }}</div>
+        <div class="text-gray-400 dark:text-gray-500 text-xs">Odds {{ odd_1 }}</div>
+      </div>
+      <div class="flex items-center justify-center">
+        <!-- Surface badge -->
+        <span class="
+          {% if surface == 'Clay' %}surface-badge-clay
+          {% elif surface == 'Grass' %}surface-badge-grass
+          {% elif surface == 'Hard' %}surface-badge-hard
+          {% else %}surface-badge-carpet{% endif %}">
+          {% if surface == 'Clay' %}&#9899;{% elif surface == 'Grass' %}&#9898;{% else %}&#9898;{% endif %}
+          {{ surface }}
+        </span>
+      </div>
+      <div class="stat-box">
+        <div class="font-bold text-gray-900 dark:text-gray-100 truncate text-xs">{{ player_2 }}</div>
+        <div class="text-gray-500 dark:text-gray-400 text-xs">Rank #{{ player_2_rank }}</div>
+        <div class="text-gray-400 dark:text-gray-500 text-xs">Odds {{ odd_2 }}</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
+      <div class="flex gap-1"><span class="font-medium text-gray-700 dark:text-gray-300">Tournament:</span> {{ tournament }}</div>
+      <div class="flex gap-1"><span class="font-medium text-gray-700 dark:text-gray-300">Round:</span> {{ round }}</div>
+      <div class="flex gap-1"><span class="font-medium text-gray-700 dark:text-gray-300">Date:</span> {{ tourney_date }}</div>
+      {% if series %}<div class="flex gap-1"><span class="font-medium text-gray-700 dark:text-gray-300">Series:</span> {{ series }}</div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Predict another button -->
+  <button onclick="document.getElementById('result-container').innerHTML=''; document.getElementById('prediction-form').scrollIntoView({behavior:'smooth'});"
+          class="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium py-2 transition-colors">
+    ← Make another prediction
+  </button>
+
+</div>
+{% endif %}

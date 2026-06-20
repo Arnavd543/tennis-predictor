@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700;
+  }
+
+  .form-field {
+    @apply w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl
+           bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+           transition-colors text-sm;
+  }
+
+  .btn-primary {
+    @apply w-full bg-gradient-to-r from-blue-600 to-purple-600
+           hover:from-blue-700 hover:to-purple-700
+           text-white font-semibold py-3.5 px-6 rounded-xl
+           transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+           disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100;
+  }
+
+  .section-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3;
+  }
+
+  .surface-badge-clay {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
+           bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300;
+  }
+
+  .surface-badge-grass {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
+           bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300;
+  }
+
+  .surface-badge-hard {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
+           bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300;
+  }
+
+  .surface-badge-carpet {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
+           bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300;
+  }
+
+  .stat-box {
+    @apply bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-center;
+  }
+
+  .confidence-bar-bg {
+    @apply h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden;
+  }
+}

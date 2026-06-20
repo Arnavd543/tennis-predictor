@@ -16,6 +16,8 @@ class PredictionRequest(models.Model):
     tourney_date     = models.DateField()
     tour_category    = models.CharField(max_length=3, choices=TOUR_CATEGORIES)
     predicted_winner = models.CharField(max_length=100)
+    confidence       = models.FloatField(null=True, blank=True)
+    model_type       = models.CharField(max_length=20, null=True, blank=True)
     request_time     = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

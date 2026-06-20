@@ -1,163 +1,324 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full" x-data="appState()" x-init="init()" :class="{ dark: darkMode }">
 <head>
-    <meta charset="UTF-8">
-    <title>Tennis Match Predictor</title>
-    <link rel="stylesheet" href="{% static 'predictor/style.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tennis Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'predictor/dist/styles.css' %}">
+  <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js" defer></script>
+  <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Tennis Match Predictor</h1>
-        <form action="{% url 'predict' %}" method="post">
+
+<body class="min-h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-sm font-bold">T</div>
+        <span class="font-semibold text-base">Tennis Predictor</span>
+        <span class="hidden sm:inline-flex ml-2 text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">67.5% accuracy</span>
+      </div>
+      <button @click="toggleDark()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Toggle dark mode">
+        <svg x-show="!darkMode" class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left: Prediction Form -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <div class="card">
+          <!-- Gradient header -->
+          <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5">
+            <h1 class="text-xl font-bold text-white">Match Prediction</h1>
+            <p class="text-blue-100 text-sm mt-0.5">Enter match details to get an AI-powered outcome prediction</p>
+          </div>
+
+          <form id="prediction-form"
+                hx-post="{% url 'predict_htmx' %}"
+                hx-target="#result-container"
+                hx-swap="innerHTML"
+                hx-indicator="#spinner"
+                @submit="submitting = true"
+                class="p-6 space-y-6">
             {% csrf_token %}
 
-            <!-- 1) Tour Category -->
-            <div class="field">
-                <label for="tour_category">Tour Category:</label>
-                <select name="tour_category" id="tour_category" required>
-                    <option value="ATP">ATP</option>
-                    <option value="WTA">WTA</option>
+            <!-- Tour / Surface / Format -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div>
+                <p class="section-header">Tour</p>
+                <select name="tour_category" x-model="tour" class="form-field">
+                  <option value="ATP">ATP (Men)</option>
+                  <option value="WTA">WTA (Women)</option>
                 </select>
-            </div>
-
-            <!-- 2) Player 1 & Rank -->
-            <div class="field">
-                <label for="player_1">Player 1 Name:</label>
-                <input type="text" name="player_1" id="player_1" required>
-            </div>
-            <div class="field">
-                <label for="player_1_rank">Player 1 Rank:</label>
-                <input type="number" name="player_1_rank" id="player_1_rank" required>
-            </div>
-
-            <!-- 3) Player 2 & Rank -->
-            <div class="field">
-                <label for="player_2">Player 2 Name:</label>
-                <input type="text" name="player_2" id="player_2" required>
-            </div>
-            <div class="field">
-                <label for="player_2_rank">Player 2 Rank:</label>
-                <input type="number" name="player_2_rank" id="player_2_rank" required>
-            </div>
-
-            <!-- 4) Surface -->
-            <div class="field">
-                <label for="surface">Surface:</label>
-                <select name="surface" id="surface" required>
-                    <option value="Clay">Clay</option>
-                    <option value="Grass">Grass</option>
-                    <option value="Hard">Hard</option>
-                    <option value="Carpet">Carpet</option>
+              </div>
+              <div>
+                <p class="section-header">Surface</p>
+                <select name="surface" class="form-field">
+                  <option value="Hard">Hard</option>
+                  <option value="Clay">Clay</option>
+                  <option value="Grass">Grass</option>
+                  <option value="Carpet">Carpet</option>
                 </select>
-            </div>
-
-            <!-- 5) Tournament Date -->
-            <div class="field">
-                <label for="tourney_date">Tournament Date:</label>
-                <input type="date" name="tourney_date" id="tourney_date" required>
-            </div>
-
-            <!-- 6) Odds -->
-            <div class="field">
-                <label for="odd_1">Player 1 Odds:</label>
-                <input type="number" step="0.01" name="odd_1" id="odd_1" required>
-            </div>
-            <div class="field">
-                <label for="odd_2">Player 2 Odds:</label>
-                <input type="number" step="0.01" name="odd_2" id="odd_2" required>
-            </div>
-
-            <!-- 7) Points -->
-            <div class="field">
-                <label for="pts_1">Player 1 Points:</label>
-                <input type="number" name="pts_1" id="pts_1" required>
-            </div>
-            <div class="field">
-                <label for="pts_2">Player 2 Points:</label>
-                <input type="number" name="pts_2" id="pts_2" required>
-            </div>
-
-            <!-- 8) Best of (3 or 5) -->
-            <div class="field">
-                <label for="best_of">Best of:</label>
-                <select name="best_of" id="best_of" required>
-                    <option value="3">3</option>
-                    <option value="5">5</option>
+              </div>
+              <div>
+                <p class="section-header">Format</p>
+                <select name="best_of" class="form-field">
+                  <option value="3">Best of 3</option>
+                  <option value="5">Best of 5</option>
                 </select>
+              </div>
             </div>
 
-            <!-- 9) Series (ATP only; for WTA this will be ignored) -->
-            <div class="field" id="series_field">
-                <label for="series">Series (ATP):</label>
-                <select name="series" id="series">
+            <!-- Players -->
+            <div>
+              <p class="section-header">Players</p>
+              <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-start">
+
+                <!-- Player 1 -->
+                <div class="space-y-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                  <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Player 1</p>
+                  <div>
+                    <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Name</label>
+                    <input type="text" name="player_1" list="players-list" required placeholder="e.g. Djokovic N." class="form-field">
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Ranking</label>
+                      <input type="number" name="player_1_rank" min="1" required placeholder="1" class="form-field">
+                    </div>
+                    <div>
+                      <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Points</label>
+                      <input type="number" name="pts_1" min="0" required placeholder="2000" class="form-field">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Betting Odds</label>
+                    <input type="number" name="odd_1" min="1.01" step="0.01" required placeholder="1.50" class="form-field">
+                  </div>
+                </div>
+
+                <!-- VS badge -->
+                <div class="flex items-center justify-center pt-8">
+                  <div class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">VS</div>
+                </div>
+
+                <!-- Player 2 -->
+                <div class="space-y-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                  <p class="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Player 2</p>
+                  <div>
+                    <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Name</label>
+                    <input type="text" name="player_2" list="players-list" required placeholder="e.g. Nadal R." class="form-field">
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Ranking</label>
+                      <input type="number" name="player_2_rank" min="1" required placeholder="2" class="form-field">
+                    </div>
+                    <div>
+                      <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Points</label>
+                      <input type="number" name="pts_2" min="0" required placeholder="1800" class="form-field">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Betting Odds</label>
+                    <input type="number" name="odd_2" min="1.01" step="0.01" required placeholder="2.50" class="form-field">
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Match Context -->
+            <div>
+              <p class="section-header">Match Context</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Date</label>
+                  <input type="date" name="tourney_date" required x-ref="dateInput" class="form-field">
+                </div>
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Round</label>
+                  <select name="round" class="form-field">
+                    <option value="The Final">Final</option>
+                    <option value="Semifinals">Semifinal</option>
+                    <option value="Quarterfinals">Quarterfinal</option>
+                    <option value="4th Round">Round of 16</option>
+                    <option value="3rd Round">Round of 32</option>
+                    <option value="2nd Round">Round of 64</option>
+                    <option value="1st Round">Round of 128</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Tournament</label>
+                  <select name="tournament" class="form-field">
+                    <option value="Australian Open">Australian Open</option>
+                    <option value="French Open">French Open</option>
+                    <option value="Wimbledon">Wimbledon</option>
+                    <option value="US Open">US Open</option>
+                    <option value="BNP Paribas Open">BNP Paribas Open (Indian Wells)</option>
+                    <option value="Sony Ericsson Open">Miami Open</option>
+                    <option value="Monte Carlo Masters">Monte Carlo Masters</option>
+                    <option value="Mutua Madrid Open">Madrid Open</option>
+                    <option value="Internazionali BNL d'Italia">Rome Masters</option>
+                    <option value="Rogers Masters">Canadian Open</option>
+                    <option value="Western & Southern Financial Group Masters">Cincinnati Masters</option>
+                    <option value="Shanghai Masters">Shanghai Masters</option>
+                    <option value="BNP Paribas Masters">Paris Masters</option>
+                    <option value="China Open">China Open</option>
+                    <option value="Dubai Duty Free Tennis Championships">Dubai Championships</option>
+                    <option value="Qatar Total Open">Qatar Open</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div x-show="tour === 'ATP'" x-cloak>
+                  <label class="text-xs text-gray-500 dark:text-gray-400 mb-1 block">ATP Series</label>
+                  <select name="series" class="form-field">
                     <option value="Grand Slam">Grand Slam</option>
                     <option value="Masters 1000">Masters 1000</option>
                     <option value="ATP 500">ATP 500</option>
                     <option value="ATP 250">ATP 250</option>
                     <option value="ATP Finals">ATP Finals</option>
-                </select>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <!-- 10) Tournament -->
-            <div class="field">
-                <label for="tournament">Tournament:</label>
-                <select name="tournament" id="tournament" required>
-                    <option value="Australian Open">Australian Open</option>
-                    <option value="French Open">French Open</option>
-                    <option value="Wimbledon">Wimbledon</option>
-                    <option value="US Open">US Open</option>
-                    <option value="BNP Paribas Open">BNP Paribas Open</option>
-                    <option value="Sony Ericsson Open">Sony Ericsson Open</option>
-                    <option value="Internazionali BNL d'Italia">Internazionali BNL d'Italia</option>
-                    <option value="Western & Southern Financial Group Masters">Western & Southern Financial Group Masters</option>
-                    <option value="Mutua Madrid Open">Mutua Madrid Open</option>
-                    <option value="Monte Carlo Masters">Monte Carlo Masters</option>
-                    <option value="Shanghai Masters">Shanghai Masters</option>
-                    <option value="BNP Paribas Masters">BNP Paribas Masters</option>
-                    <option value="Rogers Masters">Rogers Masters</option>
-                    <option value="Rogers Cup">Rogers Cup</option>
-                    <option value="China Open">China Open</option>
-                    <option value="Dubai Duty Free Tennis Championships">Dubai Duty Free Tennis Championships</option>
-                    <option value="Qatar Total Open">Qatar Total Open</option>
-                    <option value="Family Circle Cup">Family Circle Cup</option>
-                    <option value="Abierto Mexicano">Abierto Mexicano</option>
-                    <option value="BMW Open">BMW Open</option>
-                    <option value="Mercedes Cup">Mercedes Cup</option>
-                    <option value="Hall of Fame Championships">Hall of Fame Championships</option>
-                </select>
-            </div>
+            <!-- Submit button -->
+            <button type="submit" class="btn-primary" :disabled="submitting">
+              <span x-show="!submitting" class="flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Predict Winner
+              </span>
+              <span x-show="submitting" class="flex items-center justify-center gap-2" x-cloak>
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Predicting...
+              </span>
+            </button>
 
-            <!-- 11) Round -->
-            <div class="field">
-                <label for="round">Round:</label>
-                <select name="round" id="round" required>
-                    <option value="R128">R128</option>
-                    <option value="R64">R64</option>
-                    <option value="R32">R32</option>
-                    <option value="R16">R16</option>
-                    <option value="Quarter">Quarter</option>
-                    <option value="Semi">Semi</option>
-                    <option value="Final">Final</option>
-                    <!-- Add any additional rounds exactly as in your CSV -->
-                </select>
-            </div>
+          </form>
+        </div>
 
-            <!-- Submit -->
-            <button type="submit">Predict Winner</button>
-        </form>
+        <!-- HTMX result target -->
+        <div id="result-container"></div>
+
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="space-y-5">
+
+        <!-- Model Stats -->
+        <div class="card p-5">
+          <h3 class="font-semibold text-sm mb-4">Model Performance</h3>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="stat-box">
+              <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">67.5%</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">ATP accuracy</div>
+            </div>
+            <div class="stat-box">
+              <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">67.4%</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">WTA accuracy</div>
+            </div>
+          </div>
+          <ul class="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>43 engineered features</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>107K+ matches trained</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>XGBoost + LightGBM ensemble</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>Competitive with betting markets</li>
+          </ul>
+        </div>
+
+        <!-- Recent Predictions -->
+        {% if recent_predictions %}
+        <div class="card p-5">
+          <h3 class="font-semibold text-sm mb-4">Recent Predictions</h3>
+          <div class="space-y-2">
+            {% for pred in recent_predictions %}
+            <div class="flex items-center gap-2 p-2.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-xs">
+              <span class="w-2 h-2 rounded-full shrink-0
+                {% if pred.surface == 'Clay' %}bg-orange-500
+                {% elif pred.surface == 'Grass' %}bg-green-500
+                {% elif pred.surface == 'Hard' %}bg-blue-500
+                {% else %}bg-gray-400{% endif %}"></span>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium truncate">{{ pred.predicted_winner }}</div>
+                <div class="text-gray-500 dark:text-gray-400 truncate">{{ pred.player_1 }} vs {{ pred.player_2 }}</div>
+              </div>
+              {% if pred.confidence %}
+              <span class="shrink-0 font-semibold text-gray-700 dark:text-gray-300">{{ pred.confidence|floatformat:0 }}%</span>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Tips card -->
+        <div class="card p-5">
+          <h3 class="font-semibold text-sm mb-3">Tips</h3>
+          <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
+            <li>Use decimal betting odds (e.g. 1.50, 2.50)</li>
+            <li>Player names should match ATP/WTA format</li>
+            <li>Ranking points come from live ATP/WTA rankings</li>
+            <li>Model uses Elo, form, and market signals</li>
+          </ul>
+        </div>
+
+      </div>
     </div>
+  </main>
 
-    <script>
-        // If you want to hide "Series" field when WTA is selected:
-        document.getElementById('tour_category').addEventListener('change', function () {
-            const isATP = this.value === 'ATP';
-            document.getElementById('series_field').style.display = isATP ? 'block' : 'none';
-        });
-        // Initially hide if WTA is default:
-        if (document.getElementById('tour_category').value === 'WTA') {
-            document.getElementById('series_field').style.display = 'none';
+  <!-- HTMX loading indicator -->
+  <div id="spinner" class="htmx-indicator fixed bottom-6 right-6 bg-white dark:bg-gray-800 shadow-lg rounded-full px-4 py-2 flex items-center gap-2 text-sm font-medium border border-gray-200 dark:border-gray-700 z-20">
+    <svg class="animate-spin w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>
+    Predicting...
+  </div>
+
+  <script>
+    function appState() {
+      return {
+        tour: 'ATP',
+        darkMode: false,
+        submitting: false,
+        init() {
+          this.darkMode = localStorage.getItem('darkMode') === 'true';
+          // Set date to today
+          if (this.$refs.dateInput) {
+            this.$refs.dateInput.value = new Date().toISOString().split('T')[0];
+          }
+          // Reset submitting after HTMX response; scroll result into view
+          document.body.addEventListener('htmx:afterRequest', () => {
+            this.submitting = false;
+            const el = document.getElementById('result-container');
+            if (el && el.children.length > 0) {
+              setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+            }
+          });
+        },
+        toggleDark() {
+          this.darkMode = !this.darkMode;
+          localStorage.setItem('darkMode', this.darkMode);
         }
-    </script>
+      }
+    }
+  </script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    .htmx-indicator { opacity: 0; transition: opacity 200ms ease; pointer-events: none; }
+    .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; pointer-events: auto; }
+  </style>
+
 </body>
 </html>

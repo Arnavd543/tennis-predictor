@@ -59,14 +59,14 @@ TOURNAMENT_CATEGORIES = [
 TOURNAMENT_MAPPING = {name: idx for idx, name in enumerate(TOURNAMENT_CATEGORIES)}
 
 ROUND_CATEGORIES = [
-    'R128',
-    'R64',
-    'R32',
-    'R16',
-    'Quarter',
-    'Semi',
-    'Final',
-    # (add any other round names exactly as in your CSV)
+    '1st Round',
+    '2nd Round',
+    '3rd Round',
+    '4th Round',
+    'Quarterfinals',
+    'Semifinals',
+    'The Final',
+    'Round Robin',
 ]
 
 # Map round string → integer label
@@ -172,10 +172,9 @@ def compute_h2h_diff(df, player_1, player_2, reference_date):
 # ────────────────────────────────────────────────────────────────────────────────
 
 def home(request):
-    """
-    Renders the homepage with a form to choose ATP/WTA, two players, ranks, surface, date, etc.
-    """
-    return render(request, 'predictor/home.html')
+    """Renders the homepage with form and recent predictions sidebar."""
+    recent = PredictionRequest.objects.order_by('-request_time')[:8]
+    return render(request, 'predictor/home.html', {'recent_predictions': recent})
 
 
 def predict_view(request):
@@ -309,30 +308,45 @@ def predict_view(request):
         surface         = surface,
         tourney_date    = tourney_date,
         tour_category   = tour_category,
-        predicted_winner= predicted_winner
+        predicted_winner= predicted_winner,
+        confidence      = confidence,
+        model_type      = model_type,
     )
     pr.save()
 
-    # ─── 15) Render result.html ───────────────────────────────────────────────
+    confidence_pct = int(confidence) if confidence > 1 else int(confidence * 100)
+    p2_confidence_pct = 100 - confidence_pct
+
+    # ─── 15) Render result ───────────────────────────────────────────────────
     context = {
-        'tour_category':   tour_category,
-        'player_1':        player_1,
-        'player_2':        player_2,
-        'player_1_rank':   player_1_rank,
-        'player_2_rank':   player_2_rank,
-        'surface':         surface,
-        'tourney_date':    tourney_date,
-        'odd_1':           odd1,
-        'odd_2':           odd2,
-        'pts_1':           pts1,
-        'pts_2':           pts2,
-        'best_of':         best_of,
-        'series':          series_str if tour_category=='ATP' else '',
-        'tournament':      tournament_str,
-        'round':           round_str,
-        'predicted_winner':predicted_winner,
-        'confidence': confidence / 100.0 if confidence > 1 else confidence,  # Normalize to 0-1 range
-        'model_type': model_type,
-        'confidence_percent': int(confidence)
+        'tour_category':      tour_category,
+        'player_1':           player_1,
+        'player_2':           player_2,
+        'player_1_rank':      player_1_rank,
+        'player_2_rank':      player_2_rank,
+        'surface':            surface,
+        'tourney_date':       tourney_date,
+        'odd_1':              odd1,
+        'odd_2':              odd2,
+        'pts_1':              pts1,
+        'pts_2':              pts2,
+        'best_of':            best_of,
+        'series':             series_str if tour_category == 'ATP' else '',
+        'tournament':         tournament_str,
+        'round':              round_str,
+        'predicted_winner':   predicted_winner,
+        'confidence':         confidence_pct / 100.0,
+        'model_type':         model_type,
+        'confidence_percent': confidence_pct,
+        'p2_confidence_percent': p2_confidence_pct,
     }
+
+    # HTMX request → partial only; full POST → full result page
+    if getattr(request, 'htmx', False):
+        return render(request, 'predictor/partials/result_card.html', context)
     return render(request, 'predictor/result.html', context)
+
+
+def predict_htmx_view(request):
+    """HTMX entry point — delegates to predict_view which detects request.htmx."""
+    return predict_view(request)

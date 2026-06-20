@@ -1,0 +1,44 @@
+# Production Requirements for Tennis Predictor
+# Includes all dependencies from requirements.txt plus production-specific packages
+
+# Core Django & Web Server
+Django==5.2.1
+gunicorn==21.2.0
+whitenoise==6.6.0  # Static file serving
+
+# Database
+psycopg2-binary==2.9.9  # PostgreSQL adapter
+dj-database-url==2.1.0  # Database URL parsing
+
+# Caching
+redis==5.0.1
+django-redis==5.4.0
+
+# ML Libraries
+pandas==2.0.3
+numpy==1.24.3
+scikit-learn==1.3.0
+xgboost==1.7.6
+joblib==1.3.2
+scipy==1.11.1
+
+# Enhanced ML (optional)
+lightgbm==4.0.0
+catboost==1.2
+
+# Data Processing
+kaggle==1.5.16
+python-dateutil==2.8.2
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Monitoring & Logging
+sentry-sdk==1.39.1  # Error tracking (optional)
+
+# Security & UI
+django-cors-headers==4.3.1  # CORS support for API
+django-htmx==1.17.0         # HTMX integration for partial page updates
+
+# Utilities
+requests==2.31.0

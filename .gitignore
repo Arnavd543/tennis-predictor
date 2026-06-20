@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.Python
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Django
+*.sqlite3
+staticfiles/
+logs/
+
+# Environment
+.env
+.env.local
+
+# Node
+node_modules/
+
+# Tailwind built output (generated in CI/Docker)
+predictor/static/predictor/dist/
+
+# Data (large files)
+data/*.csv
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
